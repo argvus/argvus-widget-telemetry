@@ -43,7 +43,7 @@ cat <<EOF
 <span>Kernel:</span>   $KERNEL
 <span>Locale:</span>   $LOCALE
 <span>Uptime:</span>   $UPTIME
-<span>Window Manager:</span> $WINDOW_MANAGER
+<span>WM:</span>       $WINDOW_MANAGER
 <span>Display:</span>  $DISPLAY_SERVER
 <span>CPU:</span>      $CPU
 <span>GPU:</span>      $GPU
