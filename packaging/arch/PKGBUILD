@@ -11,6 +11,7 @@ conflicts=('argvus-desktop-telemetry')
 replaces=('argvus-desktop-telemetry')
 depends=(
   'argvus-appearance'
+  'argvus-fonts'
   'argvus-network'
   'argvus-session'
   'argvus-waybar'
