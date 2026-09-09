@@ -1,0 +1,31 @@
+# Maintainer: William C. Canin
+pkgname=argvus-widget-telemetry
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Waybar widget telemetry panel for the ARGVUS desktop."
+arch=('any')
+url="https://github.com/argvus/argvus-widget-telemetry"
+license=('GPL-3.0-only')
+provides=('argvus-desktop-telemetry')
+conflicts=('argvus-desktop-telemetry')
+replaces=('argvus-desktop-telemetry')
+depends=(
+  'argvus-appearance'
+  'argvus-network'
+  'argvus-session'
+  'argvus-waybar'
+  'jq'
+  'kmod'
+  'pciutils'
+  'procps-ng'
+  'util-linux'
+)
+optdepends=('nvidia-utils: NVIDIA GPU telemetry')
+options=('!debug')
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" PREFIX=/usr install
+}
