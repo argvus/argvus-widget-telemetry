@@ -9,6 +9,10 @@ LOCALE=$(locale | awk -F= '/^LANG=/{print $2}')
 UPTIME=$(uptime -p | sed 's/^up //')
 KERNEL=$(uname -r)
 
+# Desktop Environment
+# e.g. "ARGVUS 0.4.0"
+DE=$(command -v argvus >/dev/null 2>&1 && argvus --version 2>/dev/null || printf 'Unknown')
+
 # Window Manager: compositor name + version + session type
 # e.g. "Hyprland 0.56.2 (Wayland)"
 WM_NAME=${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-Unknown}}
@@ -115,6 +119,7 @@ GPU=$(lspci | awk -F': ' '
 TEXT=$(
 cat <<EOF
 <span>OS:</span>       $OS
+<span>DE:</span>       $DE
 <span>Kernel:</span>   $KERNEL
 <span>Locale:</span>   $LOCALE
 <span>Uptime:</span>   $UPTIME
