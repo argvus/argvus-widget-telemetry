@@ -82,11 +82,12 @@ else
 fi
 
 CPU_BAR=$(string_bar "${CPU_USAGE%\%}" "$BAR_SIZE")
+GPU_BAR=$(string_bar "${GPU_USAGE%\%}" "$BAR_SIZE")
 
 TEXT=$(
   printf "%-12s %-7s %-6s %s\n" "Device" "Temp" "Use" ""
   printf "%-12s %-7s %-6s %s\n" "CPU" "$CPU_TEMP" "$CPU_USAGE" "$CPU_BAR"
-  printf "%-12s %-7s %-6s\n" "GPU" "$GPU_TEMP" "$GPU_USAGE"
+  printf "%-12s %-7s %-6s %s\n" "GPU" "$GPU_TEMP" "$GPU_USAGE" "$GPU_BAR"
 )
 
 json_output "$TEXT"
