@@ -1,5 +1,5 @@
 @import url("./themes/argvus-dark-aether/widget-telemetry-theme.css");
-@import url("./mode.css");
+@import url("/usr/share/argvus/appearance/config/waybar/mode.css");
 
 /*  Waybar — Painel vertical (Widget Telemetry)  */
 
