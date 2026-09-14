@@ -30,11 +30,11 @@
     ],
     // -- System Info ----------------------------------------------------------
     "custom/header-system": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh system",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh system",
       "interval": 3600
     },
     "custom/system": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/machine-info.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/machine-info.sh",
       "return-type": "json",
       "markup": true,
       "interval": 3600,
@@ -42,11 +42,11 @@
     },
     // -- Temperature and Usage (CPU /GPU) -------------------------------------
     "custom/header-temperature-usage_cpu-gpu": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh cpu_gpu",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh cpu_gpu",
       "interval": 3600
     },
     "custom/temperature-usage_cpu-gpu": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/temperature-usage_cpu-gpu.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/temperature-usage_cpu-gpu.sh",
       "return-type": "json",
       "interval": 10,
       "tooltip": false
@@ -54,11 +54,11 @@
 
     // -- Memory ---------------------------------------------------------------
     "custom/header-memory": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh memory",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh memory",
       "interval": 3600
     },
     "custom/memory": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/memory.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/memory.sh",
       "return-type": "json",
       "interval": 5,
       "tooltip": false
@@ -66,11 +66,11 @@
 
     // -- Top Processes --------------------------------------------------------
     "custom/header-top-processes": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh processes",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh processes",
       "interval": 3600
     },
     "custom/top-processes": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/top-processes.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/top-processes.sh",
       "return-type": "json",
       "interval": 10,
       "tooltip": false
@@ -78,11 +78,11 @@
 
     // -- Storage --------------------------------------------------------------
     "custom/header-storage": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh storage",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh storage",
       "interval": 3600
     },
     "custom/storage": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/storage.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/storage.sh",
       "return-type": "json",
       "interval": 30,
       "tooltip": false
@@ -90,11 +90,11 @@
 
     // -- Netowork -------------------------------------------------------------
     "custom/header-network": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh network",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh network",
       "interval": 3600
     },
     "custom/network": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/network.sh",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/network.sh",
       "return-type": "json",
       "interval": 10,
       "tooltip": false
@@ -102,7 +102,7 @@
 
     // -- Hyprland cheatsheets -------------------------------------------------
     "custom/header-keys": {
-      "exec": "/usr/share/argvus/scripts/argvus/widget-telemetry/header.sh keys",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh keys",
       "interval": 3600
     },
     "custom/keys": {
