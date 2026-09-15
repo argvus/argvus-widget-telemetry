@@ -21,7 +21,11 @@ cmd_on() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user restart argvus-widget-telemetry.service >/dev/null 2>&1 || true
     fi
-    argvus_tr widget-telemetry state.enabled
+    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+        printf "enabled\n"
+    else
+        argvus_tr widget-telemetry state.enabled
+    fi
 }
 
 cmd_off() {
@@ -30,7 +34,11 @@ cmd_off() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user stop argvus-widget-telemetry.service >/dev/null 2>&1 || true
     fi
-    argvus_tr widget-telemetry state.disabled
+    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+        printf "disabled\n"
+    else
+        argvus_tr widget-telemetry state.disabled
+    fi
 }
 
 cmd_status_value() {
@@ -49,8 +57,20 @@ cmd_status_value() {
 
 cmd_status() {
     case "$(cmd_status_value)" in
-      enabled) argvus_tr widget-telemetry state.enabled ;;
-      *)       argvus_tr widget-telemetry state.disabled ;;
+      enabled)
+        if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+            printf "enabled\n"
+        else
+            argvus_tr widget-telemetry state.enabled
+        fi
+        ;;
+      *)
+        if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+            printf "disabled\n"
+        else
+            argvus_tr widget-telemetry state.disabled
+        fi
+        ;;
     esac
 }
 
