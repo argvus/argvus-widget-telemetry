@@ -4,26 +4,17 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 key="$1"
 
-if locale_is_pt; then
-  case "$key" in
-    system)    echo "Sistema »" ;;
-    cpu_gpu)   echo "Detalhes CPU e GPU »" ;;
-    memory)    echo "Memória »" ;;
-    storage)   echo "Armazenamento »" ;;
-    processes) echo "Processos »" ;;
-    network)   echo "Rede »" ;;
-    keys)      echo "Atalhos »" ;;
-  esac
-else
-  case "$key" in
-    system)    echo "System »" ;;
-    cpu_gpu)   echo "CPU and GPU details »" ;;
-    memory)    echo "Memory »" ;;
-    storage)   echo "Storage »" ;;
-    processes) echo "Processes »" ;;
-    network)   echo "Network »" ;;
-    keys)      echo "Cheatsheets Menu »" ;;
-  esac
-fi
+case "$key" in
+  system)    argvus_tr widget-telemetry header.system ;;
+  cpu_gpu)   argvus_tr widget-telemetry header.cpu_gpu ;;
+  memory)    argvus_tr widget-telemetry header.memory ;;
+  storage)   argvus_tr widget-telemetry header.storage ;;
+  processes) argvus_tr widget-telemetry header.processes ;;
+  network)   argvus_tr widget-telemetry header.network ;;
+  keys)      argvus_tr widget-telemetry header.keys ;;
+esac

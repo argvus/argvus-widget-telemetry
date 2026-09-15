@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 get_mount_info() {
   mount="$1"
 
@@ -34,7 +37,10 @@ ROOT_BAR=$(string_bar "$ROOT_PERC" "$BAR_SIZE")
 HOME_BAR=$(string_bar "$HOME_PERC" "$BAR_SIZE")
 
 TEXT=$(
-  printf "%-7s %-14s %-7s %s\n" "Mount" "Used" "Perc" ""
+  printf "%-7s %-14s %-7s %s\n" \
+    "$(argvus_tr widget-telemetry label.mount)" \
+    "$(argvus_tr widget-telemetry label.used)" \
+    "$(argvus_tr widget-telemetry label.percent)" ""
   printf "%-7s %-14s %-7s %s\n" "/" "${ROOT_USED}/${ROOT_TOTAL}G" "${ROOT_PERC}%" "$ROOT_BAR"
   printf "%-7s %-14s %-7s %s\n" "/home" "${HOME_USED}/${HOME_TOTAL}G" "${HOME_PERC}%" "$HOME_BAR"
 )

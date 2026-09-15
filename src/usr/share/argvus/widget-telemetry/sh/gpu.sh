@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 # ==============================================================================
 # gpu.sh — GPU usage and temperature for Waybar
 # Compatible with: NVIDIA (proprietary driver), NVIDIA (nouveau), AMD (amdgpu/radeon)
@@ -140,7 +143,7 @@ get_nvidia_nouveau() {
 get_amd() {
   usage="N/A"
   temp="N/A"
-  name="AMD GPU"
+  name="$(argvus_tr widget-telemetry gpu.name.amd)"
 
   # --- GPU Usage ---
   for card_dir in /sys/class/drm/card*/device; do
@@ -284,15 +287,15 @@ esac
 css_class=$(get_class "$temp")
 
 case "$GPU_TYPE" in
-nvidia_proprietary) driver_label="NVIDIA (proprietário)" ;;
+nvidia_proprietary) driver_label="NVIDIA ($(argvus_tr widget-telemetry gpu.driver.proprietary))" ;;
 nvidia_nouveau) driver_label="NVIDIA (nouveau)" ;;
 amd) driver_label="AMD (amdgpu)" ;;
 amd_radeon) driver_label="AMD (radeon)" ;;
-*) driver_label="Desconhecido" ;;
+*) driver_label="$(argvus_tr widget-telemetry gpu.unknown_driver)" ;;
 esac
 
 text_val="${icon} ${usage_str}  ${temp_str}"
-tooltip_val="$(json_escape "$name") | Driver: $driver_label | Uso: $usage_str | Temp: $temp_str"
+tooltip_val="$(json_escape "$name") | $(argvus_tr widget-telemetry gpu.driver): $driver_label | $(argvus_tr widget-telemetry gpu.usage): $usage_str | $(argvus_tr widget-telemetry gpu.temperature): $temp_str"
 
 printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' \
   "$(json_escape "$text_val")" \

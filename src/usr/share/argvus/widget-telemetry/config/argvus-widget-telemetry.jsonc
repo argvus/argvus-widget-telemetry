@@ -106,7 +106,8 @@
       "interval": 3600
     },
     "custom/keys": {
-      "format": "SUPER (Win) + Shift + /?",
+      "exec": "/usr/share/argvus/widget-telemetry/sh/keys.sh",
+      "interval": 3600,
       "tooltip": false
     }
 }

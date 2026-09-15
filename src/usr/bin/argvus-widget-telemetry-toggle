@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 STATE_FILE="$(paths_cache waybar/widget-telemetry-state)"
 LEGACY_DESKTOP_STATE_FILE="$(paths_cache waybar/desktop-telemetry-state)"
 LEGACY_STATE_FILE="$(paths_cache waybar/sysinfo-state)"
@@ -18,7 +21,7 @@ cmd_on() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user restart argvus-widget-telemetry.service >/dev/null 2>&1 || true
     fi
-    printf "enabled\n"
+    argvus_tr widget-telemetry state.enabled
 }
 
 cmd_off() {
@@ -27,10 +30,10 @@ cmd_off() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user stop argvus-widget-telemetry.service >/dev/null 2>&1 || true
     fi
-    printf "disabled\n"
+    argvus_tr widget-telemetry state.disabled
 }
 
-cmd_status() {
+cmd_status_value() {
     if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     elif [ -f "$LEGACY_DESKTOP_STATE_FILE" ]; then
@@ -44,8 +47,15 @@ cmd_status() {
     fi
 }
 
+cmd_status() {
+    case "$(cmd_status_value)" in
+      enabled) argvus_tr widget-telemetry state.enabled ;;
+      *)       argvus_tr widget-telemetry state.disabled ;;
+    esac
+}
+
 cmd_toggle() {
-    case "$(cmd_status)" in
+    case "$(cmd_status_value)" in
       enabled) cmd_off ;;
       *)       cmd_on ;;
     esac
@@ -57,7 +67,7 @@ case "$1" in
   status) cmd_status ;;
   toggle) cmd_toggle ;;
   *)
-    echo "Usage: $0 {on|off|toggle|status}"
+    argvus_tr widget-telemetry cli.usage command="$0" options="{on|off|toggle|status}"
     exit 1
     ;;
 esac

@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 OS=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')
 LOCALE=$(locale | awk -F= '/^LANG=/{print $2}')
 UPTIME=$(uptime -p | sed 's/^up //')
@@ -11,11 +14,15 @@ KERNEL=$(uname -r)
 
 # Desktop Environment
 # e.g. "ARGVUS 0.4.0"
-DE=$(command -v argvus >/dev/null 2>&1 && argvus --version 2>/dev/null || printf 'Unknown')
+if command -v argvus >/dev/null 2>&1; then
+  DE=$(argvus --version 2>/dev/null)
+else
+  DE=$(argvus_tr widget-telemetry machine.unknown)
+fi
 
 # Window Manager: compositor name + version + session type
 # e.g. "Hyprland 0.56.2 (Wayland)"
-WM_NAME=${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-Unknown}}
+WM_NAME=${XDG_CURRENT_DESKTOP:-${XDG_SESSION_DESKTOP:-$(argvus_tr widget-telemetry machine.unknown)}}
 WM_VERSION=""
 case "$WM_NAME" in
     Hyprland)
@@ -35,7 +42,7 @@ case "${XDG_SESSION_TYPE:-}" in
         elif [ -n "${DISPLAY:-}" ]; then
             SESSION_TYPE="X11"
         else
-            SESSION_TYPE="Unknown"
+            SESSION_TYPE="$(argvus_tr widget-telemetry machine.unknown)"
         fi
         ;;
 esac
@@ -48,7 +55,7 @@ fi
 
 # Display: resolution, physical size, refresh rate, type
 # e.g. "1920x1080 in 24\", 75 Hz [External]"
-DISPLAY_INFO="Unknown"
+DISPLAY_INFO="$(argvus_tr widget-telemetry machine.unknown)"
 
 # Helper: detect external vs laptop based on diagonal inches
 _detect_display_type() {
@@ -56,12 +63,12 @@ _detect_display_type() {
     if [ -n "$_inches" ]; then
         _large=$(awk "BEGIN {print ($_inches >= 21) ? 1 : 0}")
         if [ "$_large" -eq 1 ]; then
-            printf 'External'
+            argvus_tr widget-telemetry display.external
         else
-            printf 'Laptop'
+            argvus_tr widget-telemetry display.laptop
         fi
     else
-        printf 'Unknown'
+        argvus_tr widget-telemetry machine.unknown
     fi
 }
 
@@ -85,7 +92,13 @@ if command -v hyprctl >/dev/null 2>&1 && [ "${XDG_SESSION_TYPE:-}" = "wayland" ]
         _hmm=$(echo "$_phys" | cut -dx -f2)
         _inches=$(_calc_inches "$_wmm" "$_hmm")
         _dtype=$(_detect_display_type "$_inches")
-        [ -n "$_inches" ] && DISPLAY_INFO="${_res} in ${_inches}\", ${_hz} Hz [${_dtype}]" || DISPLAY_INFO="${_res} ${_hz} Hz"
+        if [ -n "$_inches" ]; then
+            DISPLAY_INFO=$(argvus_tr widget-telemetry display.resolution \
+                "resolution=$_res" "inches=$_inches" "refresh=$_hz" "type=$_dtype")
+        else
+            DISPLAY_INFO=$(argvus_tr widget-telemetry display.resolution_simple \
+                "resolution=$_res" "refresh=$_hz")
+        fi
     fi
 elif command -v xrandr >/dev/null 2>&1; then
     _line=$(xrandr --query 2>/dev/null | awk '/ connected/ {print $0; exit}')
@@ -99,7 +112,13 @@ elif command -v xrandr >/dev/null 2>&1; then
         _hmm=$(echo "$_phys" | awk -F'mm x ' '{gsub(/mm/,"",$2); print $2}')
         _inches=$(_calc_inches "$_wmm" "$_hmm")
         _dtype=$(_detect_display_type "$_inches")
-        [ -n "$_inches" ] && DISPLAY_INFO="${_res} in ${_inches}\", ${_hz} Hz [${_dtype}]" || DISPLAY_INFO="${_res} ${_hz} Hz"
+        if [ -n "$_inches" ]; then
+            DISPLAY_INFO=$(argvus_tr widget-telemetry display.resolution \
+                "resolution=$_res" "inches=$_inches" "refresh=$_hz" "type=$_dtype")
+        else
+            DISPLAY_INFO=$(argvus_tr widget-telemetry display.resolution_simple \
+                "resolution=$_res" "refresh=$_hz")
+        fi
     fi
 fi
 
@@ -118,15 +137,15 @@ GPU=$(lspci | awk -F': ' '
 
 TEXT=$(
 cat <<EOF
-<span>OS:</span>       $OS
-<span>DE:</span>       $DE
-<span>Kernel:</span>   $KERNEL
-<span>Locale:</span>   $LOCALE
-<span>Uptime:</span>   $UPTIME
-<span>WM:</span>       $WINDOW_MANAGER
-<span>Display:</span>  $(json_escape "$DISPLAY_INFO")
-<span>CPU:</span>      $CPU
-<span>GPU:</span>      $GPU
+<span>$(argvus_tr widget-telemetry machine.os):</span>       $OS
+<span>$(argvus_tr widget-telemetry machine.desktop):</span>       $DE
+<span>$(argvus_tr widget-telemetry machine.kernel):</span>   $KERNEL
+<span>$(argvus_tr widget-telemetry machine.locale):</span>   $LOCALE
+<span>$(argvus_tr widget-telemetry machine.uptime):</span>   $UPTIME
+<span>$(argvus_tr widget-telemetry machine.window_manager):</span>       $WINDOW_MANAGER
+<span>$(argvus_tr widget-telemetry machine.display):</span>  $(json_escape "$DISPLAY_INFO")
+<span>$(argvus_tr widget-telemetry machine.cpu):</span>      $CPU
+<span>$(argvus_tr widget-telemetry machine.gpu):</span>      $GPU
 EOF
 )
 

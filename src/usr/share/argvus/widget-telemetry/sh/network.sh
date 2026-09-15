@@ -2,6 +2,10 @@
 
 set -eu
 
+ARGVUS_SYSTEM_CONFIG="${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}"
+ARGVUS_I18N_HELPER="${ARGVUS_I18N_HELPER:-$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh}"
+. "$ARGVUS_I18N_HELPER"
+
 json_text() {
   awk '
     BEGIN {
@@ -41,7 +45,7 @@ rx1="$(printf '%s\n' "$status" | awk -F= '$1 == "rx" { print $2; exit }')"
 tx1="$(printf '%s\n' "$status" | awk -F= '$1 == "tx" { print $2; exit }')"
 
 if [ "$connected" != "yes" ] || [ -z "$iface" ]; then
-  printf '%s\n' "Disconnected" | json_text
+  argvus_tr widget-telemetry network.disconnected | json_text
   exit 0
 fi
 
@@ -63,6 +67,9 @@ rx_h="$(human "$rx_rate")"
 tx_h="$(human "$tx_rate")"
 
 {
-  printf '%s\n' "IFACE  IP              Traffic"
-  printf '%s  %s  ↓ %s ↑ %s\n' "$iface" "${ip_addr:-none}" "$rx_h" "$tx_h"
+  printf '%s  %s              %s\n' \
+    "$(argvus_tr widget-telemetry label.interface)" \
+    "$(argvus_tr widget-telemetry label.ip)" \
+    "$(argvus_tr widget-telemetry label.traffic)"
+  printf '%s  %s  ↓ %s ↑ %s\n' "$iface" "${ip_addr:-$(argvus_tr widget-telemetry network.none)}" "$rx_h" "$tx_h"
 } | json_text

@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 MEM_TOTAL=$(awk '/MemTotal/ {printf "%.1f", $2/1024/1024}' /proc/meminfo)
 
 MEM_AVAIL=$(awk '/MemAvailable/ {printf "%.1f", $2/1024/1024}' /proc/meminfo)
@@ -32,7 +35,10 @@ RAM_BAR=$(string_bar "$MEM_PERC" "$BAR_SIZE")
 SWAP_BAR=$(string_bar "$SWAP_PERC" "$BAR_SIZE")
 
 TEXT=$(
-  printf "%-7s %-13s %-7s %s\n" "Type" "Used" "Perc" ""
+  printf "%-7s %-13s %-7s %s\n" \
+    "$(argvus_tr widget-telemetry label.type)" \
+    "$(argvus_tr widget-telemetry label.used)" \
+    "$(argvus_tr widget-telemetry label.percent)" ""
   printf "%-7s %-13s %-7s %s\n" "RAM" "${MEM_USED}/${MEM_TOTAL}G" "${MEM_PERC}%" "$RAM_BAR"
   printf "%-7s %-13s %-7s %s\n" "Swap" "${SWAP_USED}/${SWAP_TOTAL}G" "${SWAP_PERC}%" "$SWAP_BAR"
 )

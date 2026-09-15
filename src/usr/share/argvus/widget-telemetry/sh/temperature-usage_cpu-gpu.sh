@@ -4,6 +4,9 @@
 ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}/session/sh/bootstrap.sh}"
 . "$ARGVUS_BOOTSTRAP"
 
+ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
+. "$ARGVUS_I18N_HELPER"
+
 GPU_SCRIPT="$(paths_config "widget-telemetry/sh/gpu.sh")"
 
 cpu_temp() {
@@ -85,7 +88,10 @@ CPU_BAR=$(string_bar "${CPU_USAGE%\%}" "$BAR_SIZE")
 GPU_BAR=$(string_bar "${GPU_USAGE%\%}" "$BAR_SIZE")
 
 TEXT=$(
-  printf "%-12s %-7s %-6s %s\n" "Device" "Temp" "Use" ""
+  printf "%-12s %-7s %-6s %s\n" \
+    "$(argvus_tr widget-telemetry label.device)" \
+    "$(argvus_tr widget-telemetry label.temperature)" \
+    "$(argvus_tr widget-telemetry label.usage)" ""
   printf "%-12s %-7s %-6s %s\n" "CPU" "$CPU_TEMP" "$CPU_USAGE" "$CPU_BAR"
   printf "%-12s %-7s %-6s %s\n" "GPU" "$GPU_TEMP" "$GPU_USAGE" "$GPU_BAR"
 )

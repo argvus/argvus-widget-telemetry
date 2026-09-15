@@ -12,6 +12,7 @@ replaces=('argvus-desktop-telemetry')
 depends=(
   'argvus-appearance'
   'argvus-fonts'
+  'argvus-i18n'
   'argvus-network'
   'argvus-session'
   'argvus-waybar'
