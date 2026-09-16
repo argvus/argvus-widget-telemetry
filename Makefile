@@ -1,48 +1,53 @@
-PREFIX ?= /usr
-DESTDIR ?=
-INSTALL ?= install
-RM ?= rm -f
+.PHONY: help build package install install-package clean validate lint spellcheck changelog
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install uninstall validate build clean
-
 help:
 	@echo "Available targets:"
-	@echo "  make build"
-	@echo "  make install"
-	@echo "  make uninstall"
-	@echo "  make validate"
-
-install:
-	$(INSTALL) -Dm755 src/usr/bin/argvus-widget-telemetry-toggle "$(DESTDIR)$(PREFIX)/bin/argvus-widget-telemetry-toggle"
-	ln -sfn "$(PREFIX)/bin/argvus-widget-telemetry-toggle" "$(DESTDIR)$(PREFIX)/bin/argvus-desktop-telemetry-toggle"
-	$(INSTALL) -dm755 "$(DESTDIR)$(PREFIX)/share/argvus/widget-telemetry"
-	cp -R --no-preserve=ownership src/usr/share/argvus/widget-telemetry/. "$(DESTDIR)$(PREFIX)/share/argvus/widget-telemetry/"
-	find "$(DESTDIR)$(PREFIX)/share/argvus/widget-telemetry/sh" -type f -name '*.sh' -exec chmod 755 {} \;
-	$(INSTALL) -Dm644 LICENSE "$(DESTDIR)$(PREFIX)/share/licenses/argvus-widget-telemetry/LICENSE"
-
-uninstall:
-	$(RM) "$(DESTDIR)$(PREFIX)/bin/argvus-widget-telemetry-toggle"
-	$(RM) "$(DESTDIR)$(PREFIX)/bin/argvus-desktop-telemetry-toggle"
-	rm -rf "$(DESTDIR)$(PREFIX)/share/argvus/widget-telemetry"
-	$(RM) "$(DESTDIR)$(PREFIX)/share/licenses/argvus-widget-telemetry/LICENSE"
-
-validate:
-	@set -eu; \
-	test -x src/usr/bin/argvus-widget-telemetry-toggle; \
-	test -x src/usr/share/argvus/widget-telemetry/sh/network.sh; \
-	test -f src/usr/share/argvus/widget-telemetry/config/argvus-widget-telemetry.jsonc; \
-	test -f src/usr/share/argvus/widget-telemetry/config/argvus-widget-telemetry.css; \
-	scripts="src/usr/bin/argvus-widget-telemetry-toggle $$(find src/usr/share/argvus/widget-telemetry/sh -type f -name '*.sh' | sort)"; \
-	for script in $$scripts; do sh -n "$$script"; done; \
-	if command -v shellcheck >/dev/null 2>&1; then shellcheck -e SC1090 -e SC1091 -e SC2034 $$scripts; else echo "shellcheck not found; skipped"; fi; \
-	for theme in src/usr/share/argvus/widget-telemetry/config/themes/*; do test -f "$$theme/widget-telemetry-theme.css"; done
-	@echo "argvus-widget-telemetry validation ok"
+	@echo "  make build           - build the package into build/"
+	@echo "  make package         - alias for make build"
+	@echo "  make install         - install the single local package (sudo pacman -U)"
+	@echo "  make clean           - remove build/ outputs"
+	@echo "  make validate        - run required repository and PKGBUILD checks"
+	@echo "  make lint            - run local static checks"
+	@echo "  make spellcheck      - run cspell (if installed)"
+	@echo "  make changelog       - regenerate CHANGELOG.md with git-cliff"
 
 build:
-	@tools/build-local-package.sh
+	@tools/sh/pkgbuild_local.sh
+
+package: build
+
+install:
+	@set -e; \
+	package="$$(find build/dist -maxdepth 1 -type f -name '*.pkg.tar.zst' -print | sort | head -n 1)"; \
+	count="$$(find build/dist -maxdepth 1 -type f -name '*.pkg.tar.zst' -print | wc -l)"; \
+	if [ "$$count" -ne 1 ] || [ -z "$$package" ]; then \
+		echo "Expected exactly one package in build/dist; run 'make clean && make build'." >&2; \
+		exit 1; \
+	fi; \
+	sudo pacman -U "$$package"
+
+install-package: install
+
+validate:
+	@tools/sh/validate.sh
+
+lint:
+	@shellcheck tools/sh/*.sh packaging/arch/common/*.sh src/usr/bin/argvus-hello
+	@bash -n tools/sh/*.sh packaging/arch/common/*.sh src/usr/bin/argvus-hello
+	@git diff --check
+	@echo "Lint OK"
+
+spellcheck:
+	@if command -v cspell >/dev/null 2>&1; then \
+		cspell --config cspell.json .; \
+	else \
+		echo "cspell is not installed; skipping (CI runs it)." >&2; \
+	fi
+
+changelog:
+	@git-cliff -o CHANGELOG.md
 
 clean:
-	rm -rf dist
-	rm -f packaging/arch/*.zst packaging/arch/*.tar.gz
+	rm -rf -- build/

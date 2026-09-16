@@ -2,7 +2,7 @@
 pkgname=argvus-widget-telemetry
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="Waybar widget telemetry panel for the ARGVUS desktop."
+pkgdesc="Waybar telemetry widget and supporting shell scripts for the ARGVUS desktop."
 arch=('any')
 url="https://github.com/argvus/argvus-widget-telemetry"
 license=('GPL-3.0-only')
@@ -24,10 +24,24 @@ depends=(
 )
 optdepends=('nvidia-utils: NVIDIA GPU telemetry')
 options=('!debug')
-source=("${pkgname}-${pkgver}.tar.gz")
-sha256sums=('SKIP')
+source=(
+  "${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz"
+)
+sha256sums=()
+
+# shellcheck disable=SC1091
+_functions_file="${startdir:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)}/../common/functions.sh"
+. "$_functions_file"
+
+prepare() {
+  arch_normalize_source_tree
+}
+
+check() {
+  arch_check_telemetry_payload
+}
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  make DESTDIR="${pkgdir}" PREFIX=/usr install
+  arch_package_telemetry_payload
 }
+
