@@ -10,38 +10,144 @@ ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
 STATE_FILE="$(paths_cache waybar/widget-telemetry-state)"
 LEGACY_DESKTOP_STATE_FILE="$(paths_cache waybar/desktop-telemetry-state)"
 LEGACY_STATE_FILE="$(paths_cache waybar/sysinfo-state)"
+BLOCKS_FILE="${ARGVUS_STATE_HOME}/widget-telemetry-blocks"
+BLOCK_NAMES="system cpu_gpu memory storage processes network keys"
 
 ensure_state_dir() {
     mkdir -p "$(dirname "$STATE_FILE")"
 }
 
-cmd_on() {
-    ensure_state_dir
-    echo enabled > "$STATE_FILE"
-    if command -v systemctl >/dev/null 2>&1; then
-        systemctl --user restart argvus-widget-telemetry.service >/dev/null 2>&1 || true
+# Return the stored state for one named telemetry block. Missing preferences
+# deliberately mean enabled so upgrades preserve the complete legacy widget.
+block_state() {
+    _block="$1"
+    if [ -r "$BLOCKS_FILE" ]; then
+        _value="$(sed -n "s/^${_block}=//p" "$BLOCKS_FILE" | sed -n '1p')"
+        case "$_value" in
+            enabled|disabled) printf '%s\n' "$_value"; return 0 ;;
+        esac
     fi
-    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
-        printf "enabled\n"
-    else
-        argvus_tr widget-telemetry state.enabled
-    fi
+    printf '%s\n' enabled
 }
 
-cmd_off() {
-    ensure_state_dir
-    echo disabled > "$STATE_FILE"
+write_blocks_file() {
+    _changed_block="$1"
+    _changed_value="$2"
+    mkdir -p "${BLOCKS_FILE%/*}"
+    _temporary_file="$(mktemp "${BLOCKS_FILE}.tmp.XXXXXX")"
+    for _block in $BLOCK_NAMES; do
+        if [ "$_block" = "$_changed_block" ]; then
+            printf '%s=%s\n' "$_block" "$_changed_value"
+        else
+            printf '%s=%s\n' "$_block" "$(block_state "$_block")"
+        fi
+    done > "$_temporary_file"
+    mv "$_temporary_file" "$BLOCKS_FILE"
+}
+
+# Enable or comment the paired Waybar declarations for a persisted block.
+# Markers stay visible so repeated application remains idempotent.
+apply_block() {
+    _config="$1"
+    _block="$2"
+    _marker="ARGVUS_TELEMETRY_$(printf '%s' "$_block" | tr '[:lower:]' '[:upper:]')"
+    case "$(block_state "$_block")" in
+        enabled)
+            sed -i "/${_marker}_BEGIN/,/${_marker}_END/{
+                /${_marker}_BEGIN/b
+                /${_marker}_END/b
+                s|^//||
+            }" "$_config"
+            ;;
+        disabled)
+            sed -i "/${_marker}_BEGIN/,/${_marker}_END/{
+                /${_marker}_BEGIN/b
+                /${_marker}_END/b
+                /^[[:space:]]*\/\//b
+                s|^|//|
+            }" "$_config"
+            ;;
+    esac
+}
+
+# Keep the top-level module definitions valid when only an earlier block is
+# enabled. JSONC comments do not make a trailing object comma valid.
+normalize_module_properties() {
+    _config="$1"
+    _temporary_file="$(mktemp "${_config}.tmp.XXXXXX")"
+    awk '
+        { lines[NR] = $0 }
+        /^    },?[[:space:]]*$/ { closings[++closing_count] = NR; last = NR }
+        END {
+            for (closing_no = 1; closing_no <= closing_count; closing_no++) {
+                line_no = closings[closing_no]
+                sub(/,[[:space:]]*$/, "", lines[line_no])
+                if (line_no != last) lines[line_no] = lines[line_no] ","
+            }
+            for (line_no = 1; line_no <= NR; line_no++) print lines[line_no]
+        }
+    ' "$_config" > "$_temporary_file"
+    mv "$_temporary_file" "$_config"
+}
+
+# Keep the JSONC array valid when its final enabled block changes. Waybar's
+# parser accepts comments but does not accept a trailing comma in this array.
+normalize_modules_left() {
+    _config="$1"
+    _temporary_file="$(mktemp "${_config}.tmp.XXXXXX")"
+    awk '
+        /"modules-left"[[:space:]]*:/ { inside = 1; print; next }
+        inside && /^[[:space:]]*\],/ {
+            for (line_no = 1; line_no <= count; line_no++) {
+                if (lines[line_no] ~ /^[[:space:]]*"custom\//) {
+                    sub(/,[[:space:]]*$/, "", lines[line_no])
+                    if (line_no != last) lines[line_no] = lines[line_no] ","
+                }
+                print lines[line_no]
+            }
+            print
+            inside = 0
+            count = 0
+            last = 0
+            next
+        }
+        inside {
+            lines[++count] = $0
+            if ($0 ~ /^[[:space:]]*"custom\//) last = count
+            next
+        }
+        { print }
+    ' "$_config" > "$_temporary_file"
+    mv "$_temporary_file" "$_config"
+}
+
+apply_blocks() {
+    _config="$(paths_config widget-telemetry/config/argvus-widget-telemetry.jsonc)"
+    [ -f "$_config" ] || {
+        printf '%s\n' "missing widget telemetry configuration: $_config" >&2
+        return 1
+    }
+    for _block in $BLOCK_NAMES; do
+        apply_block "$_config" "$_block"
+    done
+    normalize_modules_left "$_config"
+    normalize_module_properties "$_config"
+}
+
+any_block_enabled() {
+    for _block in $BLOCK_NAMES; do
+        [ "$(block_state "$_block")" = enabled ] && return 0
+    done
+    return 1
+}
+
+stop_widget() {
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user stop argvus-widget-telemetry.service >/dev/null 2>&1 || true
     fi
-    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
-        printf "disabled\n"
-    else
-        argvus_tr widget-telemetry state.disabled
-    fi
 }
 
-cmd_status_value() {
+master_state_value() {
     if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     elif [ -f "$LEGACY_DESKTOP_STATE_FILE" ]; then
@@ -53,6 +159,61 @@ cmd_status_value() {
     else
         printf "disabled\n"
     fi
+}
+
+sync_widget_service() {
+    if [ "$(master_state_value)" = enabled ] && any_block_enabled; then
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl --user restart argvus-widget-telemetry.service >/dev/null 2>&1 || true
+        fi
+    else
+        stop_widget
+    fi
+}
+
+restart_widget() {
+    sync_widget_service
+}
+
+effective_state_value() {
+    if [ "$(master_state_value)" = enabled ] && any_block_enabled; then
+        printf "enabled\n"
+    else
+        printf "disabled\n"
+    fi
+}
+
+cmd_on() {
+    ensure_state_dir
+    echo enabled > "$STATE_FILE"
+    restart_widget
+    if [ "$(effective_state_value)" = enabled ]; then
+        _state=enabled
+    else
+        _state=disabled
+    fi
+    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+        printf '%s\n' "$_state"
+    elif [ "$_state" = enabled ]; then
+        argvus_tr widget-telemetry state.enabled
+    else
+        argvus_tr widget-telemetry state.disabled
+    fi
+}
+
+cmd_off() {
+    ensure_state_dir
+    echo disabled > "$STATE_FILE"
+    stop_widget
+    if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
+        printf "disabled\n"
+    else
+        argvus_tr widget-telemetry state.disabled
+    fi
+}
+
+cmd_status_value() {
+    effective_state_value
 }
 
 cmd_status() {
@@ -81,13 +242,48 @@ cmd_toggle() {
     esac
 }
 
+cmd_blocks_status() {
+    for _block in $BLOCK_NAMES; do
+        printf '%s=%s\n' "$_block" "$(block_state "$_block")"
+    done
+}
+
+cmd_blocks_set() {
+    _block="${1:-}"
+    _value="${2:-}"
+    case " $_block " in
+        *" system "*|*" cpu_gpu "*|*" memory "*|*" storage "*|*" processes "*|*" network "*|*" keys ") ;;
+        *) printf '%s\n' "invalid telemetry block: ${_block:-empty}" >&2; return 2 ;;
+    esac
+    case "$_value" in
+        enabled|disabled) ;;
+        *) printf '%s\n' "invalid telemetry block state: ${_value:-empty}" >&2; return 2 ;;
+    esac
+    write_blocks_file "$_block" "$_value"
+    apply_blocks
+    restart_widget
+}
+
+cmd_blocks() {
+    case "${1:-status}" in
+        status) cmd_blocks_status ;;
+        apply) apply_blocks ;;
+        set) cmd_blocks_set "${2:-}" "${3:-}" ;;
+        *)
+            printf '%s\n' "usage: $0 blocks {status|apply|set <block> <enabled|disabled>}" >&2
+            return 2
+            ;;
+    esac
+}
+
 case "$1" in
   on) cmd_on ;;
   off) cmd_off ;;
   status) cmd_status ;;
   toggle) cmd_toggle ;;
+  blocks) shift; cmd_blocks "$@" ;;
   *)
-    argvus_tr widget-telemetry cli.usage command="$0" options="{on|off|toggle|status}"
+    argvus_tr widget-telemetry cli.usage command="$0" options="{on|off|toggle|status|blocks}"
     exit 1
     ;;
 esac

@@ -13,22 +13,37 @@
     "margin-left": 0,
     "margin-bottom": 0,
     "modules-left": [
+      // ARGVUS_TELEMETRY_SYSTEM_BEGIN
       "custom/header-system",
       "custom/system",
+      // ARGVUS_TELEMETRY_SYSTEM_END
+      // ARGVUS_TELEMETRY_CPU_GPU_BEGIN
       "custom/header-temperature-usage_cpu-gpu",
       "custom/temperature-usage_cpu-gpu",
+      // ARGVUS_TELEMETRY_CPU_GPU_END
+      // ARGVUS_TELEMETRY_MEMORY_BEGIN
       "custom/header-memory",
       "custom/memory",
+      // ARGVUS_TELEMETRY_MEMORY_END
+      // ARGVUS_TELEMETRY_STORAGE_BEGIN
       "custom/header-storage",
       "custom/storage",
+      // ARGVUS_TELEMETRY_STORAGE_END
+      // ARGVUS_TELEMETRY_PROCESSES_BEGIN
       "custom/header-top-processes",
       "custom/top-processes",
+      // ARGVUS_TELEMETRY_PROCESSES_END
+      // ARGVUS_TELEMETRY_NETWORK_BEGIN
       "custom/header-network",
       "custom/network",
+      // ARGVUS_TELEMETRY_NETWORK_END
+      // ARGVUS_TELEMETRY_KEYS_BEGIN
       "custom/header-keys",
       "custom/keys"
+      // ARGVUS_TELEMETRY_KEYS_END
     ],
     // -- System Info ----------------------------------------------------------
+    // ARGVUS_TELEMETRY_SYSTEM_BEGIN
     "custom/header-system": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh system",
       "interval": 3600
@@ -40,7 +55,9 @@
       "interval": 3600,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_SYSTEM_END
     // -- Temperature and Usage (CPU /GPU) -------------------------------------
+    // ARGVUS_TELEMETRY_CPU_GPU_BEGIN
     "custom/header-temperature-usage_cpu-gpu": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh cpu_gpu",
       "interval": 3600
@@ -51,8 +68,10 @@
       "interval": 10,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_CPU_GPU_END
 
     // -- Memory ---------------------------------------------------------------
+    // ARGVUS_TELEMETRY_MEMORY_BEGIN
     "custom/header-memory": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh memory",
       "interval": 3600
@@ -63,8 +82,10 @@
       "interval": 5,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_MEMORY_END
 
     // -- Top Processes --------------------------------------------------------
+    // ARGVUS_TELEMETRY_PROCESSES_BEGIN
     "custom/header-top-processes": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh processes",
       "interval": 3600
@@ -75,8 +96,10 @@
       "interval": 10,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_PROCESSES_END
 
     // -- Storage --------------------------------------------------------------
+    // ARGVUS_TELEMETRY_STORAGE_BEGIN
     "custom/header-storage": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh storage",
       "interval": 3600
@@ -87,8 +110,10 @@
       "interval": 30,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_STORAGE_END
 
     // -- Netowork -------------------------------------------------------------
+    // ARGVUS_TELEMETRY_NETWORK_BEGIN
     "custom/header-network": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh network",
       "interval": 3600
@@ -99,8 +124,10 @@
       "interval": 10,
       "tooltip": false
     },
+    // ARGVUS_TELEMETRY_NETWORK_END
 
     // -- Hyprland cheatsheets -------------------------------------------------
+    // ARGVUS_TELEMETRY_KEYS_BEGIN
     "custom/header-keys": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh keys",
       "interval": 3600
@@ -110,4 +137,5 @@
       "interval": 3600,
       "tooltip": false
     }
+    // ARGVUS_TELEMETRY_KEYS_END
 }
