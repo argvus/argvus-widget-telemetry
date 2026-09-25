@@ -264,6 +264,34 @@ cmd_blocks_set() {
     restart_widget
 }
 
+cmd_apply_state() {
+    _master="${1:-}"
+    case "$_master" in enabled|disabled) ;; *) return 2 ;; esac
+    shift
+    [ "$#" -eq 7 ] || return 2
+    _system="$1"; _cpu_gpu="$2"; _memory="$3"; _storage="$4"
+    _processes="$5"; _network="$6"; _keys="$7"
+    for _value in "$@"; do
+        case "$_value" in enabled|disabled) ;; *) return 2 ;; esac
+    done
+    ensure_state_dir
+    mkdir -p "${BLOCKS_FILE%/*}"
+    printf '%s\n' "$_master" > "$STATE_FILE"
+    _temporary_file="$(mktemp "${BLOCKS_FILE}.tmp.XXXXXX")"
+    {
+        printf '%s=%s\n' system "$_system"
+        printf '%s=%s\n' cpu_gpu "$_cpu_gpu"
+        printf '%s=%s\n' memory "$_memory"
+        printf '%s=%s\n' storage "$_storage"
+        printf '%s=%s\n' processes "$_processes"
+        printf '%s=%s\n' network "$_network"
+        printf '%s=%s\n' keys "$_keys"
+    } > "$_temporary_file"
+    mv "$_temporary_file" "$BLOCKS_FILE"
+    apply_blocks
+    sync_widget_service
+}
+
 cmd_blocks() {
     case "${1:-status}" in
         status) cmd_blocks_status ;;
@@ -277,6 +305,7 @@ cmd_blocks() {
 }
 
 case "$1" in
+  apply-state) shift; cmd_apply_state "$@" ;;
   on) cmd_on ;;
   off) cmd_off ;;
   status) cmd_status ;;

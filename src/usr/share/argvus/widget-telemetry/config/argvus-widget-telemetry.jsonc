@@ -2,6 +2,7 @@
 //  Waybar — Painel vertical (Widget Telemetry)
 // =============================================================================
 {
+    "name": "argvus-widget-telemetry",
     "layer": "bottom",
     "position": "left",
     "width": 380,
