@@ -1,0 +1,9 @@
+/* theme: argvus-kanagawa-lotus-float — widget telemetry panel */
+@define-color th-background    #E5DDB0;
+@define-color th-header        #545464;
+@define-color th-foreground    #545464;
+@define-color th-window-bg     rgba(242, 236, 188, 0.82);
+@define-color th-border        rgba(199, 215, 224, 0.90);
+@define-color th-border-header rgba(199, 215, 224, 1);
+@define-color th-disconnected  rgba(105, 108, 119, 0.30);
+

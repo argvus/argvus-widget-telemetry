@@ -1,0 +1,8 @@
+/* theme: nord-light — widget telemetry panel */
+@define-color th-background    #E5E9F0;
+@define-color th-header        #2E3440;
+@define-color th-foreground    #2E3440;
+@define-color th-window-bg     rgba(216, 222, 233, 0.82);
+@define-color th-border        rgba(215, 218, 224, 0.90);
+@define-color th-border-header rgba(215, 218, 224, 1);
+@define-color th-disconnected  rgba(105, 108, 119, 0.30);

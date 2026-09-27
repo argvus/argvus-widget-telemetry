@@ -1,0 +1,8 @@
+/* theme: flexoki-light-float — widget telemetry panel */
+@define-color th-background    #E6E4D9;
+@define-color th-header        #100F0F;
+@define-color th-foreground    #100F0F;
+@define-color th-window-bg     rgba(255, 252, 240, 0.82);
+@define-color th-border        rgba(218, 216, 206, 0.90);
+@define-color th-border-header rgba(218, 216, 206, 1);
+@define-color th-disconnected  rgba(111, 110, 105, 0.30);
