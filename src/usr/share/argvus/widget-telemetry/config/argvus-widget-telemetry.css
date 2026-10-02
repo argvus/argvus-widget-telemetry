@@ -3,7 +3,7 @@
 
 /*  Waybar — Painel vertical (Widget Telemetry)  */
 
-@define-color th-window-bg-effective @th-window-bg;
+@define-color th-window-bg-effective @th-window-bg-rgba;
 
 * {
     font-family: "IBM Plex Mono", "Symbols Nerd Font Mono", monospace;

@@ -17,6 +17,24 @@ ensure_state_dir() {
     mkdir -p "$(dirname "$STATE_FILE")"
 }
 
+canonical_master_state() {
+    command -v argvus-config >/dev/null 2>&1 || return 1
+    _value="$(argvus-config get /effects/widget_telemetry_enabled --effective --raw 2>/dev/null || true)"
+    case "$_value" in
+        true|enabled) printf '%s\n' enabled ;;
+        false|disabled) printf '%s\n' disabled ;;
+        *) return 1 ;;
+    esac
+}
+
+set_canonical_master() {
+    command -v argvus-config >/dev/null 2>&1 || return 0
+    argvus-config set /effects/widget_telemetry_enabled "$1" >/dev/null 2>&1 || return 1
+    if [ "${ARGVUS_CONFIG_SERVICE:-0}" != 1 ] && [ "${ARGVUS_PROJECTING:-0}" != 1 ]; then
+        systemctl --user reload argvus-config.service >/dev/null 2>&1 || return 1
+    fi
+}
+
 # Return the stored state for one named telemetry block. Missing preferences
 # deliberately mean enabled so upgrades preserve the complete legacy widget.
 block_state() {
@@ -148,7 +166,9 @@ stop_widget() {
 }
 
 master_state_value() {
-    if [ -f "$STATE_FILE" ]; then
+    if canonical_master_state; then
+        return 0
+    elif [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
     elif [ -f "$LEGACY_DESKTOP_STATE_FILE" ]; then
         cat "$LEGACY_DESKTOP_STATE_FILE"
@@ -185,6 +205,7 @@ effective_state_value() {
 
 cmd_on() {
     ensure_state_dir
+    set_canonical_master true || true
     echo enabled > "$STATE_FILE"
     restart_widget
     if [ "$(effective_state_value)" = enabled ]; then
@@ -203,6 +224,7 @@ cmd_on() {
 
 cmd_off() {
     ensure_state_dir
+    set_canonical_master false || true
     echo disabled > "$STATE_FILE"
     stop_widget
     if [ "${ARGVUS_MACHINE_OUTPUT:-0}" = 1 ]; then
@@ -276,6 +298,7 @@ cmd_apply_state() {
     done
     ensure_state_dir
     mkdir -p "${BLOCKS_FILE%/*}"
+    set_canonical_master "$([ "$_master" = enabled ] && printf true || printf false)" || true
     printf '%s\n' "$_master" > "$STATE_FILE"
     _temporary_file="$(mktemp "${BLOCKS_FILE}.tmp.XXXXXX")"
     {

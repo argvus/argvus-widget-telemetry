@@ -2,7 +2,8 @@
 @define-color th-background #221F22;
 @define-color th-header #78DCE8;
 @define-color th-foreground #FCFCFA;
-@define-color th-window-bg rgba(45, 42, 46, 0.35);
+@define-color th-window-bg     #2D2A2E;
+@define-color th-window-bg-rgba rgba(45, 42, 46, 0.35);
 @define-color th-border #5B595C;
 @define-color th-border-header #78DCE8;
 @define-color th-disconnected #939293;
