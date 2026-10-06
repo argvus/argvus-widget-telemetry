@@ -8,6 +8,7 @@ ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
 . "$ARGVUS_I18N_HELPER"
 
 N_PROC="5"
+CMD_MAX="20"
 PS="/usr/bin/ps"
 AWK="/usr/bin/awk"
 
@@ -23,10 +24,15 @@ OUTPUT=$(
     $PS -eo pid,pcpu,pmem,comm --no-headers |
       sort -k2 -rn |
       head -n "$N_PROC" |
-      $AWK '
+      $AWK -v max="$CMD_MAX" '
         {
+            cmd = ""
+            for (i = 4; i <= NF; i++)
+                cmd = cmd (i > 4 ? " " : "") $i
+            if (length(cmd) > max)
+                cmd = substr(cmd, 1, max - 3) "..."
             printf "%-7s %-5.1f %-5.1f %s\n",
-                   $1, $2, $3, $4
+                   $1, $2, $3, cmd
         }'
   }
 )
