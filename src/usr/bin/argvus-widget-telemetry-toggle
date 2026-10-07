@@ -11,7 +11,7 @@ STATE_FILE="$(paths_cache waybar/widget-telemetry-state)"
 LEGACY_DESKTOP_STATE_FILE="$(paths_cache waybar/desktop-telemetry-state)"
 LEGACY_STATE_FILE="$(paths_cache waybar/sysinfo-state)"
 BLOCKS_FILE="${ARGVUS_STATE_HOME}/widget-telemetry-blocks"
-BLOCK_NAMES="system cpu_gpu memory storage processes network keys"
+BLOCK_NAMES="system cpu_gpu memory storage processes network keys dev_dashboard"
 
 ensure_state_dir() {
     mkdir -p "$(dirname "$STATE_FILE")"
@@ -48,18 +48,74 @@ block_state() {
     printf '%s\n' enabled
 }
 
+# Prints the configured display order (space-separated), reconciled against
+# BLOCK_NAMES: keeps the persisted order, drops names the package no longer
+# defines, and appends any new block (from a package upgrade) that is not in
+# it yet, at the end.
+current_order() {
+    _stored=""
+    if [ -r "$BLOCKS_FILE" ]; then
+        _stored="$(sed -n 's/^__order__=//p' "$BLOCKS_FILE" | sed -n '1p' | tr ',' ' ')"
+    fi
+    _reconciled=""
+    for _block in $_stored; do
+        case " $BLOCK_NAMES " in
+            *" $_block "*)
+                case " $_reconciled " in
+                    *" $_block "*) ;;
+                    *) _reconciled="$_reconciled $_block" ;;
+                esac
+                ;;
+        esac
+    done
+    for _block in $BLOCK_NAMES; do
+        case " $_reconciled " in
+            *" $_block "*) ;;
+            *) _reconciled="$_reconciled $_block" ;;
+        esac
+    done
+    printf '%s\n' "${_reconciled# }"
+}
+
+# Validates that $1 is a comma-separated permutation of BLOCK_NAMES, so a
+# malformed or stale order argument never corrupts the blocks file.
+valid_order() {
+    _seen=""
+    _count=0
+    for _block in $(printf '%s' "$1" | tr ',' ' '); do
+        case " $BLOCK_NAMES " in
+            *" $_block "*) ;;
+            *) return 1 ;;
+        esac
+        case " $_seen " in
+            *" $_block "*) return 1 ;;
+        esac
+        _seen="$_seen $_block"
+        _count=$((_count + 1))
+    done
+    _expected=0
+    for _block in $BLOCK_NAMES; do
+        _expected=$((_expected + 1))
+    done
+    [ "$_count" -eq "$_expected" ]
+}
+
 write_blocks_file() {
     _changed_block="$1"
     _changed_value="$2"
+    _order="$(current_order | tr ' ' ',')"
     mkdir -p "${BLOCKS_FILE%/*}"
     _temporary_file="$(mktemp "${BLOCKS_FILE}.tmp.XXXXXX")"
-    for _block in $BLOCK_NAMES; do
-        if [ "$_block" = "$_changed_block" ]; then
-            printf '%s=%s\n' "$_block" "$_changed_value"
-        else
-            printf '%s=%s\n' "$_block" "$(block_state "$_block")"
-        fi
-    done > "$_temporary_file"
+    {
+        printf '__order__=%s\n' "$_order"
+        for _block in $BLOCK_NAMES; do
+            if [ "$_block" = "$_changed_block" ]; then
+                printf '%s=%s\n' "$_block" "$_changed_value"
+            else
+                printf '%s=%s\n' "$_block" "$(block_state "$_block")"
+            fi
+        done
+    } > "$_temporary_file"
     mv "$_temporary_file" "$BLOCKS_FILE"
 }
 
@@ -139,6 +195,38 @@ normalize_modules_left() {
     mv "$_temporary_file" "$_config"
 }
 
+# Moves each block's already-applied modules-left chunk to match the
+# persisted display order. Comment state set by apply_block travels with its
+# chunk, since the BEGIN/END markers used to extract it move together.
+reorder_modules_left() {
+    _config="$1"
+    _chunks_dir="$(mktemp -d)"
+    for _block in $BLOCK_NAMES; do
+        _marker="ARGVUS_TELEMETRY_$(printf '%s' "$_block" | tr '[:lower:]' '[:upper:]')"
+        sed -n "/${_marker}_BEGIN/,/${_marker}_END/{p; /${_marker}_END/q}" "$_config" \
+            > "${_chunks_dir}/${_block}"
+    done
+    _temporary_file="$(mktemp "${_config}.tmp.XXXXXX")"
+    awk -v chunks_dir="$_chunks_dir" -v order="$(current_order)" '
+        BEGIN { split(order, blocks, " ") }
+        /"modules-left"[[:space:]]*:/ {
+            print
+            for (i = 1; i in blocks; i++) {
+                chunk = chunks_dir "/" blocks[i]
+                while ((getline line < chunk) > 0) print line
+                close(chunk)
+            }
+            inside = 1
+            next
+        }
+        inside && /^[[:space:]]*\],/ { inside = 0; print; next }
+        inside { next }
+        { print }
+    ' "$_config" > "$_temporary_file"
+    mv "$_temporary_file" "$_config"
+    rm -rf "$_chunks_dir"
+}
+
 apply_blocks() {
     _config="$(paths_config widget-telemetry/config/argvus-widget-telemetry.jsonc)"
     [ -f "$_config" ] || {
@@ -148,6 +236,7 @@ apply_blocks() {
     for _block in $BLOCK_NAMES; do
         apply_block "$_config" "$_block"
     done
+    reorder_modules_left "$_config"
     normalize_modules_left "$_config"
     normalize_module_properties "$_config"
 }
@@ -265,6 +354,7 @@ cmd_toggle() {
 }
 
 cmd_blocks_status() {
+    printf '__order__=%s\n' "$(current_order | tr ' ' ',')"
     for _block in $BLOCK_NAMES; do
         printf '%s=%s\n' "$_block" "$(block_state "$_block")"
     done
@@ -274,7 +364,7 @@ cmd_blocks_set() {
     _block="${1:-}"
     _value="${2:-}"
     case " $_block " in
-        *" system "*|*" cpu_gpu "*|*" memory "*|*" storage "*|*" processes "*|*" network "*|*" keys ") ;;
+        *" system "*|*" cpu_gpu "*|*" memory "*|*" storage "*|*" processes "*|*" network "*|*" keys "*|*" dev_dashboard ") ;;
         *) printf '%s\n' "invalid telemetry block: ${_block:-empty}" >&2; return 2 ;;
     esac
     case "$_value" in
@@ -290,18 +380,20 @@ cmd_apply_state() {
     _master="${1:-}"
     case "$_master" in enabled|disabled) ;; *) return 2 ;; esac
     shift
-    [ "$#" -eq 7 ] || return 2
+    [ "$#" -eq 9 ] || return 2
     _system="$1"; _cpu_gpu="$2"; _memory="$3"; _storage="$4"
-    _processes="$5"; _network="$6"; _keys="$7"
-    for _value in "$@"; do
+    _processes="$5"; _network="$6"; _keys="$7"; _dev_dashboard="$8"; _order="$9"
+    for _value in "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"; do
         case "$_value" in enabled|disabled) ;; *) return 2 ;; esac
     done
+    valid_order "$_order" || return 2
     ensure_state_dir
     mkdir -p "${BLOCKS_FILE%/*}"
     set_canonical_master "$([ "$_master" = enabled ] && printf true || printf false)" || true
     printf '%s\n' "$_master" > "$STATE_FILE"
     _temporary_file="$(mktemp "${BLOCKS_FILE}.tmp.XXXXXX")"
     {
+        printf '__order__=%s\n' "$_order"
         printf '%s=%s\n' system "$_system"
         printf '%s=%s\n' cpu_gpu "$_cpu_gpu"
         printf '%s=%s\n' memory "$_memory"
@@ -309,6 +401,7 @@ cmd_apply_state() {
         printf '%s=%s\n' processes "$_processes"
         printf '%s=%s\n' network "$_network"
         printf '%s=%s\n' keys "$_keys"
+        printf '%s=%s\n' dev_dashboard "$_dev_dashboard"
     } > "$_temporary_file"
     mv "$_temporary_file" "$BLOCKS_FILE"
     apply_blocks

@@ -17,4 +17,5 @@ case "$key" in
   processes) argvus_tr widget-telemetry header.processes ;;
   network)   argvus_tr widget-telemetry header.network ;;
   keys)      argvus_tr widget-telemetry header.keys ;;
+  dev_dashboard) argvus_tr widget-telemetry header.dev_dashboard ;;
 esac

@@ -40,8 +40,12 @@
       // ARGVUS_TELEMETRY_NETWORK_END
       // ARGVUS_TELEMETRY_KEYS_BEGIN
       "custom/header-keys",
-      "custom/keys"
+      "custom/keys",
       // ARGVUS_TELEMETRY_KEYS_END
+      // ARGVUS_TELEMETRY_DEV_DASHBOARD_BEGIN
+      "custom/header-dev_dashboard",
+      "custom/dev_dashboard"
+      // ARGVUS_TELEMETRY_DEV_DASHBOARD_END
     ],
     // -- System Info ----------------------------------------------------------
     // ARGVUS_TELEMETRY_SYSTEM_BEGIN
@@ -137,6 +141,20 @@
       "exec": "/usr/share/argvus/widget-telemetry/sh/keys.sh",
       "interval": 3600,
       "tooltip": false
-    }
+    },
     // ARGVUS_TELEMETRY_KEYS_END
+
+    // -- Dev Dashboard ----------------------------------------------------------
+    // ARGVUS_TELEMETRY_DEV_DASHBOARD_BEGIN
+    "custom/header-dev_dashboard": {
+      "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh dev_dashboard",
+      "interval": 3600
+    },
+    "custom/dev_dashboard": {
+      "exec": "/usr/share/argvus/widget-telemetry/sh/dev-dashboard.sh",
+      "return-type": "json",
+      "interval": 10,
+      "tooltip": false
+    }
+    // ARGVUS_TELEMETRY_DEV_DASHBOARD_END
 }
