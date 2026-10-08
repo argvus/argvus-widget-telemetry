@@ -38,14 +38,14 @@
       "custom/header-network",
       "custom/network",
       // ARGVUS_TELEMETRY_NETWORK_END
-      // ARGVUS_TELEMETRY_KEYS_BEGIN
-      "custom/header-keys",
-      "custom/keys",
-      // ARGVUS_TELEMETRY_KEYS_END
       // ARGVUS_TELEMETRY_DEV_DASHBOARD_BEGIN
       "custom/header-dev_dashboard",
-      "custom/dev_dashboard"
+      "custom/dev_dashboard",
       // ARGVUS_TELEMETRY_DEV_DASHBOARD_END
+      // ARGVUS_TELEMETRY_KEYS_BEGIN
+      "custom/header-keys",
+      "custom/keys"
+      // ARGVUS_TELEMETRY_KEYS_END
     ],
     // -- System Info ----------------------------------------------------------
     // ARGVUS_TELEMETRY_SYSTEM_BEGIN

@@ -11,7 +11,7 @@ STATE_FILE="$(paths_cache waybar/widget-telemetry-state)"
 LEGACY_DESKTOP_STATE_FILE="$(paths_cache waybar/desktop-telemetry-state)"
 LEGACY_STATE_FILE="$(paths_cache waybar/sysinfo-state)"
 BLOCKS_FILE="${ARGVUS_STATE_HOME}/widget-telemetry-blocks"
-BLOCK_NAMES="system cpu_gpu memory storage processes network keys dev_dashboard"
+BLOCK_NAMES="system cpu_gpu memory storage processes network dev_dashboard keys"
 
 ensure_state_dir() {
     mkdir -p "$(dirname "$STATE_FILE")"
