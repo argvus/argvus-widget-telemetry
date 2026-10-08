@@ -41,6 +41,8 @@ window#waybar {
 #custom-storage,
 #custom-header-network,
 #custom-network,
+#custom-header-dev_dashboard,
+#custom-dev_dashboard,
 #custom-header-keys,
 #custom-system,
 #custom-keys {
@@ -56,6 +58,7 @@ window#waybar {
 #custom-header-top-processes,
 #custom-header-storage,
 #custom-header-network,
+#custom-header-dev_dashboard,
 #custom-header-keys {
     color: @th-header;
     font-size: 14px;
@@ -76,6 +79,7 @@ window#waybar {
 #custom-top-processes,
 #custom-storage,
 #custom-network,
+#custom-dev_dashboard,
 #custom-keys {
   color: @th-foreground;
   font-size: 14px;
