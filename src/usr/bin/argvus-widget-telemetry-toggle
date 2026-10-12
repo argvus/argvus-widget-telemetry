@@ -18,8 +18,8 @@ ensure_state_dir() {
 }
 
 canonical_master_state() {
-    command -v argvus-config >/dev/null 2>&1 || return 1
-    _value="$(argvus-config get /effects/widget_telemetry_enabled --effective --raw 2>/dev/null || true)"
+    command -v argvus >/dev/null 2>&1 || return 1
+    _value="$(argvus config get /effects/widget_telemetry_enabled --effective --raw 2>/dev/null || true)"
     case "$_value" in
         true|enabled) printf '%s\n' enabled ;;
         false|disabled) printf '%s\n' disabled ;;
@@ -28,8 +28,8 @@ canonical_master_state() {
 }
 
 set_canonical_master() {
-    command -v argvus-config >/dev/null 2>&1 || return 0
-    argvus-config set /effects/widget_telemetry_enabled "$1" >/dev/null 2>&1 || return 1
+    command -v argvus >/dev/null 2>&1 || return 0
+    argvus config set /effects/widget_telemetry_enabled "$1" >/dev/null 2>&1 || return 1
     if [ "${ARGVUS_CONFIG_SERVICE:-0}" != 1 ] && [ "${ARGVUS_PROJECTING:-0}" != 1 ]; then
         systemctl --user reload argvus-config.service >/dev/null 2>&1 || return 1
     fi

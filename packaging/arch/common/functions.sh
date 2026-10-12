@@ -41,6 +41,9 @@ arch_package_telemetry_payload() {
 
 	install -dm755 "${pkgdir}/usr"
 	cp -a "${source_root}/src/usr/." "${pkgdir}/usr/"
+	install -dm755 "${pkgdir}/usr/lib/argvus/commands"
+	mv "${pkgdir}/usr/bin/argvus-widget-telemetry-toggle" \
+		"${pkgdir}/usr/lib/argvus/commands/argvus-widget-telemetry-toggle"
 	find "${pkgdir}/usr/share/argvus/widget-telemetry/sh" -type f -name '*.sh' -exec chmod 755 {} +
 	install -Dm644 "${source_root}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

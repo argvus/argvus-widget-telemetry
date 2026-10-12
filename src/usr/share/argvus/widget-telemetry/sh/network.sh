@@ -37,7 +37,7 @@ human() {
     }'
 }
 
-status="$(argvus-networkctl status)"
+status="$(argvus networkctl status)"
 iface="$(printf '%s\n' "$status" | awk -F= '$1 == "iface" { print $2; exit }')"
 ip_addr="$(printf '%s\n' "$status" | awk -F= '$1 == "ip" { print $2; exit }')"
 connected="$(printf '%s\n' "$status" | awk -F= '$1 == "connected" { print $2; exit }')"
@@ -51,7 +51,7 @@ fi
 
 sleep 1
 
-status="$(argvus-networkctl status)"
+status="$(argvus networkctl status)"
 rx2="$(printf '%s\n' "$status" | awk -F= '$1 == "rx" { print $2; exit }')"
 tx2="$(printf '%s\n' "$status" | awk -F= '$1 == "tx" { print $2; exit }')"
 
