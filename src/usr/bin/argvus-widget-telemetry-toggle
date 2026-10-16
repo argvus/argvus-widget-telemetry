@@ -296,6 +296,7 @@ cmd_on() {
     ensure_state_dir
     set_canonical_master true || true
     echo enabled > "$STATE_FILE"
+    reset_scroll
     restart_widget
     if [ "$(effective_state_value)" = enabled ]; then
         _state=enabled
@@ -372,6 +373,7 @@ cmd_blocks_set() {
         *) printf '%s\n' "invalid telemetry block state: ${_value:-empty}" >&2; return 2 ;;
     esac
     write_blocks_file "$_block" "$_value"
+    reset_scroll
     apply_blocks
     restart_widget
 }
@@ -404,6 +406,7 @@ cmd_apply_state() {
         printf '%s=%s\n' dev_dashboard "$_dev_dashboard"
     } > "$_temporary_file"
     mv "$_temporary_file" "$BLOCKS_FILE"
+    reset_scroll
     apply_blocks
     sync_widget_service
 }
@@ -420,15 +423,180 @@ cmd_blocks() {
     esac
 }
 
+# -- Scroll window --------------------------------------------------------------
+# When the enabled blocks are taller than the monitor, the mouse wheel slides a
+# window over them instead of clipping the bottom. Heights are estimates in
+# pixels calibrated to the stylesheet, so the layout does not depend on the
+# rendered output of every block.
+
+SCROLL_STATE_FILE="$(paths_cache waybar/widget-telemetry-scroll)"
+# Realtime signal declared as "signal" on every widget module in the jsonc.
+SCROLL_SIGNAL=13
+HEADER_PX=28
+ROW_PX=19
+BLOCK_GAP_PX=8
+
+# Text lines a block renders, excluding its header.
+block_lines() {
+    case "$1" in
+        system) printf '%s\n' 9 ;;
+        processes) printf '%s\n' 6 ;;
+        network) printf '%s\n' 2 ;;
+        keys) printf '%s\n' 1 ;;
+        *) printf '%s\n' 3 ;;
+    esac
+}
+
+block_px() {
+    _lines="$(block_lines "$1")"
+    printf '%s\n' $((HEADER_PX + _lines * ROW_PX + BLOCK_GAP_PX))
+}
+
+# Usable height in pixels of the focused monitor. Prints nothing when Hyprland
+# or jq cannot answer, in which case every block is shown.
+monitor_budget_px() {
+    command -v hyprctl >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    hyprctl monitors -j 2>/dev/null \
+        | jq -r '[.[] | select(.focused)][0] | select(. != null)
+            | ((.height / .scale) - .reserved[0] - .reserved[2]) | floor' 2>/dev/null
+}
+
+scroll_offset() {
+    _value="$(sed -n '1p' "$SCROLL_STATE_FILE" 2>/dev/null || true)"
+    case "$_value" in
+        ""|*[!0-9]*) printf '%s\n' 0 ;;
+        *) printf '%s\n' "$_value" ;;
+    esac
+}
+
+write_scroll_offset() {
+    mkdir -p "${SCROLL_STATE_FILE%/*}"
+    printf '%s\n' "$1" > "$SCROLL_STATE_FILE"
+}
+
+reset_scroll() {
+    write_scroll_offset 0
+}
+
+# Computes the visible window into LAYOUT_* variables. The offset is clamped so
+# the list never scrolls past its last block, and everything is shown when the
+# enabled blocks fit the budget.
+scroll_layout() {
+    _items=""
+    _total=0
+    _count=0
+    for _block in $(current_order); do
+        [ "$(block_state "$_block")" = enabled ] || continue
+        _px="$(block_px "$_block")"
+        _items="$_items $_block:$_px"
+        _total=$((_total + _px))
+        _count=$((_count + 1))
+    done
+
+    _budget="$(monitor_budget_px)"
+    case "$_budget" in
+        ""|*[!0-9]*) _budget="$_total" ;;
+    esac
+
+    # Largest offset from which the rest of the list still fits the budget.
+    _max=0
+    _prefix=0
+    for _item in $_items; do
+        [ $((_total - _prefix)) -le "$_budget" ] && break
+        _prefix=$((_prefix + ${_item##*:}))
+        _max=$((_max + 1))
+    done
+    if [ "$_count" -eq 0 ]; then
+        _max=0
+    elif [ "$_max" -ge "$_count" ]; then
+        _max=$((_count - 1))
+    fi
+
+    _offset="$(scroll_offset)"
+    [ "$_offset" -gt "$_max" ] && _offset="$_max"
+
+    LAYOUT_VISIBLE=""
+    LAYOUT_FIRST=""
+    LAYOUT_LAST=""
+    _used=0
+    _index=0
+    _last_index=-1
+    for _item in $_items; do
+        _block="${_item%%:*}"
+        _px="${_item##*:}"
+        if [ "$_index" -ge "$_offset" ]; then
+            if [ -n "$LAYOUT_VISIBLE" ] && [ $((_used + _px)) -gt "$_budget" ]; then
+                break
+            fi
+            if [ -z "$LAYOUT_FIRST" ]; then
+                LAYOUT_FIRST="$_block"
+            fi
+            LAYOUT_VISIBLE="${LAYOUT_VISIBLE:+$LAYOUT_VISIBLE }$_block"
+            LAYOUT_LAST="$_block"
+            _used=$((_used + _px))
+            _last_index="$_index"
+        fi
+        _index=$((_index + 1))
+    done
+
+    LAYOUT_OFFSET="$_offset"
+    LAYOUT_MAX="$_max"
+    LAYOUT_ABOVE=0
+    [ "$_offset" -gt 0 ] && LAYOUT_ABOVE=1
+    LAYOUT_BELOW=0
+    [ "$_last_index" -lt $((_count - 1)) ] && LAYOUT_BELOW=1
+}
+
+refresh_widget() {
+    command -v systemctl >/dev/null 2>&1 || return 0
+    systemctl --user kill --signal="RTMIN+$SCROLL_SIGNAL" argvus-widget-telemetry.service >/dev/null 2>&1 || true
+}
+
+cmd_visible() {
+    scroll_layout
+    printf '%s\n' "$LAYOUT_VISIBLE"
+}
+
+cmd_layout() {
+    scroll_layout
+    printf 'visible=%s\n' "$LAYOUT_VISIBLE"
+    printf 'first=%s\n' "$LAYOUT_FIRST"
+    printf 'last=%s\n' "$LAYOUT_LAST"
+    printf 'offset=%s\n' "$LAYOUT_OFFSET"
+    printf 'max=%s\n' "$LAYOUT_MAX"
+    printf 'above=%s\n' "$LAYOUT_ABOVE"
+    printf 'below=%s\n' "$LAYOUT_BELOW"
+}
+
+cmd_scroll() {
+    scroll_layout
+    case "${1:-}" in
+        up) _target=$((LAYOUT_OFFSET - 1)) ;;
+        down) _target=$((LAYOUT_OFFSET + 1)) ;;
+        *)
+            printf '%s\n' "usage: $0 scroll {up|down}" >&2
+            return 2
+            ;;
+    esac
+    [ "$_target" -lt 0 ] && _target=0
+    [ "$_target" -gt "$LAYOUT_MAX" ] && _target="$LAYOUT_MAX"
+    write_scroll_offset "$_target"
+    refresh_widget
+}
+
 case "$1" in
   apply-state) shift; cmd_apply_state "$@" ;;
+  scroll) shift; cmd_scroll "$@" ;;
+  visible) cmd_visible ;;
+  layout) cmd_layout ;;
   on) cmd_on ;;
   off) cmd_off ;;
   status) cmd_status ;;
   toggle) cmd_toggle ;;
   blocks) shift; cmd_blocks "$@" ;;
   *)
-    argvus_tr widget-telemetry cli.usage command="$0" options="{on|off|toggle|status|blocks}"
+    argvus_tr widget-telemetry cli.usage command="$0" options="{on|off|toggle|status|blocks|scroll}"
     exit 1
     ;;
 esac

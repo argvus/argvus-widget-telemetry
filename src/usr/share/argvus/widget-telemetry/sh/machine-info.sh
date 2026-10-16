@@ -7,6 +7,13 @@ ARGVUS_BOOTSTRAP="${ARGVUS_BOOTSTRAP:-${ARGVUS_SYSTEM_CONFIG:-/usr/share/argvus}
 ARGVUS_I18N_HELPER="$ARGVUS_SYSTEM_CONFIG/lib/i18n.sh"
 . "$ARGVUS_I18N_HELPER"
 
+# Render nothing while the widget is scrolled past this block or it does not fit.
+TOGGLE="${ARGVUS_WIDGET_TELEMETRY_TOGGLE:-/usr/lib/argvus/commands/argvus-widget-telemetry-toggle}"
+case " $("$TOGGLE" visible) " in
+  *" system "*) ;;
+  *) printf '%s\n' '{"text":""}'; exit 0 ;;
+esac
+
 OS=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')
 LOCALE=$(locale | awk -F= '/^LANG=/{print $2}')
 UPTIME=$(uptime -p | sed 's/^up //')

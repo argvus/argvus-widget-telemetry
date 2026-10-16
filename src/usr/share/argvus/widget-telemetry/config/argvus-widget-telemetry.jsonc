@@ -51,27 +51,43 @@
     // ARGVUS_TELEMETRY_SYSTEM_BEGIN
     "custom/header-system": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh system",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/system": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/machine-info.sh",
       "return-type": "json",
       "markup": true,
       "interval": 3600,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_SYSTEM_END
     // -- Temperature and Usage (CPU /GPU) -------------------------------------
     // ARGVUS_TELEMETRY_CPU_GPU_BEGIN
     "custom/header-temperature-usage_cpu-gpu": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh cpu_gpu",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/temperature-usage_cpu-gpu": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/temperature-usage_cpu-gpu.sh",
       "return-type": "json",
       "interval": 10,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_CPU_GPU_END
 
@@ -79,13 +95,21 @@
     // ARGVUS_TELEMETRY_MEMORY_BEGIN
     "custom/header-memory": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh memory",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/memory": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/memory.sh",
       "return-type": "json",
       "interval": 5,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_MEMORY_END
 
@@ -93,13 +117,21 @@
     // ARGVUS_TELEMETRY_PROCESSES_BEGIN
     "custom/header-top-processes": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh processes",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/top-processes": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/top-processes.sh",
       "return-type": "json",
       "interval": 10,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_PROCESSES_END
 
@@ -107,13 +139,21 @@
     // ARGVUS_TELEMETRY_STORAGE_BEGIN
     "custom/header-storage": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh storage",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/storage": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/storage.sh",
       "return-type": "json",
       "interval": 30,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_STORAGE_END
 
@@ -121,13 +161,21 @@
     // ARGVUS_TELEMETRY_NETWORK_BEGIN
     "custom/header-network": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh network",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/network": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/network.sh",
       "return-type": "json",
       "interval": 10,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_NETWORK_END
 
@@ -135,12 +183,20 @@
     // ARGVUS_TELEMETRY_KEYS_BEGIN
     "custom/header-keys": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh keys",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/keys": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/keys.sh",
       "interval": 3600,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     // ARGVUS_TELEMETRY_KEYS_END
 
@@ -148,13 +204,21 @@
     // ARGVUS_TELEMETRY_DEV_DASHBOARD_BEGIN
     "custom/header-dev_dashboard": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/header.sh dev_dashboard",
-      "interval": 3600
+      "interval": 30,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     },
     "custom/dev_dashboard": {
       "exec": "/usr/share/argvus/widget-telemetry/sh/dev-dashboard.sh",
       "return-type": "json",
       "interval": 10,
-      "tooltip": false
+      "tooltip": false,
+      "signal": 13,
+      "hide-empty-text": true,
+      "on-scroll-up": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll up",
+      "on-scroll-down": "/usr/lib/argvus/commands/argvus-widget-telemetry-toggle scroll down"
     }
     // ARGVUS_TELEMETRY_DEV_DASHBOARD_END
 }

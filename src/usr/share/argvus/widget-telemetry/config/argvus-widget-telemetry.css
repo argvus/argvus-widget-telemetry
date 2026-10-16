@@ -63,13 +63,13 @@ window#waybar {
     color: @th-header;
     font-size: 14px;
     font-weight: bold;
-    padding: 10px 16px 2px 16px;
+    padding: 6px 16px 2px 16px;
     border-top: 1px solid @th-border-header;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 #custom-header-system {
-  padding-top: 10px;
+  padding-top: 6px;
 }
 
 /* -- Font ----------------------------------------------- */
@@ -83,7 +83,7 @@ window#waybar {
 #custom-keys {
   color: @th-foreground;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
 }
 
 /* ── Processes ------------------------------------------ */
